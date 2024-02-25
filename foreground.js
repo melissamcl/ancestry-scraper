@@ -4,4 +4,66 @@
 // Several foreground scripts can be declared
 // and injected into the same or different pages.
 
-console.log("This prints to the console of the page (injected only if the page url matched)")
+// TODO: Set shared DNA filter
+
+window.addEventListener('load', () => {
+  console.log('Page loaded');
+
+  scrollToBottom(() => {
+    console.log('Reached bottom of page');
+    checkForMatchEntries();
+  });
+});
+
+function scrollToBottom(callback) {
+  let lastHeight = 0;
+  let timeoutId = null;
+  const interval = setInterval(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      const newHeight = document.body.scrollHeight;
+      if (newHeight === lastHeight) {
+        clearInterval(interval);
+        callback();
+      } else {
+        lastHeight = newHeight;
+      }
+    }, 0); // Adjust the timeout as needed
+  }, 1000); // Adjust the interval as needed
+}
+
+function checkForMatchEntries() {
+  const matchEntries = document.querySelectorAll('.matchGrid');
+  if (matchEntries.length > 0) {
+    console.log('Match entries found:', Array.from(matchEntries));
+  } else {
+    console.log('No match entries found');
+  }
+
+  for (const matchEntry of matchEntries) {
+    const matchId = matchEntry.childNodes[0].id.substring(5);
+    const fullName = matchEntry.childNodes[0].innerText.split('\n');
+    const name = fullName[0];
+    let manager = '';
+    if (fullName[1]) {
+      manager = fullName[1].replace('Managed by ', '');
+    }
+    const relationship = matchEntry.childNodes[3].childNodes[0].innerText;
+    const sharedDNA =
+      matchEntry.childNodes[3].childNodes[2].innerText.split(' cM | ');
+    const sharedCM = sharedDNA[0].replace(',', '');
+    const sharedPercent = sharedDNA[1].replace('% shared DNA', '');
+    const side = matchEntry.childNodes[3].childNodes[5].innerText;
+    const trees = matchEntry.childNodes[4].children[0].innerText;
+    if (matchEntry.childNodes[4].children[1]) {
+      const commonAncestorTag = matchEntry.childNodes[4].children[1].innerText;
+    }
+
+    console.log(
+      `name: ${name}, manager: ${manager}, relationship: ${relationship}, sharedCM: ${sharedCM}, shared%: ${sharedPercent}, side: ${side}`
+    );
+  }
+}
