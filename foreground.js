@@ -44,7 +44,7 @@ function checkForMatchEntries() {
   }
 
   for (const matchEntry of matchEntries) {
-    const matchId = matchEntry.childNodes[0].id.substring(5);
+    const matchId = matchEntry.id.substring(5);
     const fullName = matchEntry.childNodes[0].innerText.split('\n');
     const name = fullName[0];
     let manager = '';
@@ -58,12 +58,33 @@ function checkForMatchEntries() {
     const sharedPercent = sharedDNA[1].replace('% shared DNA', '');
     const side = matchEntry.childNodes[3].childNodes[5].innerText;
     const trees = matchEntry.childNodes[4].children[0].innerText;
+    let commonAncestor = false;
     if (matchEntry.childNodes[4].children[1]) {
-      const commonAncestorTag = matchEntry.childNodes[4].children[1].innerText;
+      commonAncestor = true;
+    }
+    const notes = matchEntry.childNodes[7].innerText;
+    let tags = [];
+    if (matchEntry.childNodes[8].childNodes[0].childNodes[1].children[0]) {
+      for (const child of matchEntry.childNodes[8].childNodes[0].childNodes[1]
+        .children) {
+        tags.push(child.ariaLabel.replace('In group ', ''));
+      }
     }
 
     console.log(
-      `name: ${name}, manager: ${manager}, relationship: ${relationship}, sharedCM: ${sharedCM}, shared%: ${sharedPercent}, side: ${side}`
+      `
+      id: ${matchId}, 
+      name: ${name}, 
+      manager: ${manager}, 
+      relationship: ${relationship}, 
+      sharedCM: ${sharedCM}, 
+      shared%: ${sharedPercent}, 
+      side: ${side}, 
+      trees: ${trees},
+      commonAncestor: ${commonAncestor},
+      notes: ${notes}
+      tags: ${tags}
+      `
     );
   }
 }
