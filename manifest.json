@@ -3,25 +3,31 @@
   "name": "Ancestry Matches Scraper",
   "description": "A scraper for Ancestry DNA matches",
   "version": "0.0.1",
+  "action": {
+    "default_title": "Ancestry Matches Scraper",
+    "default_popup": "popup/popup.html"
+  },
   "icons": {
     "16": "logo/logo-16.png",
     "48": "logo/logo-48.png",
     "128": "logo/logo-128.png"
   },
   "options_page": "settings/settings.html",
-  "action": {
-    "default_title": "Chrome Addon v3 Starter",
-    "default_popup": "popup/popup.html"
-  },
-  "permissions": [],
+  "permissions": ["activeTab"],
   "host_permissions": ["*://*/*"],
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "js": ["foreground.js"],
-      "matches": ["https://www.ancestry.com/discoveryui-matches/list/*"]
+      "matches": ["https://www.ancestry.com/*"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["scripts/scrapeMatches.js", "foreground.js"],
+      "matches": ["<all_urls>"]
     }
   ]
 }
