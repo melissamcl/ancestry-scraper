@@ -20,13 +20,13 @@
   },
   "content_scripts": [
     {
-      "js": ["foreground.js"],
+      "js": ["scripts/scrapeMatches.js", "foreground.js"],
       "matches": ["https://www.ancestry.com/*"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["scripts/scrapeMatches.js", "foreground.js"],
+      "resources": ["scripts/scrapeMatches.js"],
       "matches": ["<all_urls>"]
     }
   ]

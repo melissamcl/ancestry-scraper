@@ -3,13 +3,11 @@
 // (see "content_script" key).
 // Several foreground scripts can be declared
 // and injected into the same or different pages.
-console.log('Foreground script injected');
 
-import { scrapeMatches } from './scripts/scrapeMatches.js'; // Adjust the path as needed
+console.log('Foreground script injected');
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scrapeMatches') {
-    // Add your logic to scrape matches here
     console.log('Scraping matches...');
     scrapeMatches();
   }

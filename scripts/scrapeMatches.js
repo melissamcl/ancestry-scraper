@@ -1,6 +1,6 @@
 // TODO: Set shared DNA filter
 
-export function scrapeMatches() {
+function scrapeMatches() {
   scrollToBottom(() => {
     console.log('Reached bottom of page');
     checkForMatchEntries();
