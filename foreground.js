@@ -4,11 +4,15 @@
 // Several foreground scripts can be declared
 // and injected into the same or different pages.
 
-console.log('Foreground script injected');
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scrapeMatches') {
     console.log('Scraping matches...');
     scrapeMatches();
+  }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'addMatchToTree') {
+    addMatchToTree();
   }
 });

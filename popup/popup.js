@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sendMessage('scrapeMatches');
   });
 
-  // const addToTreeBtn = document.getElementById('addToTreeBtn');
-  // addToTreeBtn.addEventListener('click', () => {
-  //   sendMessage('addMatchToTree');
-  // });
+  const addToTreeBtn = document.getElementById('addToTreeBtn');
+  addToTreeBtn.addEventListener('click', () => {
+    sendMessage('addMatchToTree');
+  });
 });
