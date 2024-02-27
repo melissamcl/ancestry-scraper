@@ -1,28 +1,76 @@
 // TODO: Set shared DNA filter
 
-function scrapeMatches() {
-  scrollToBottom(() => {
-    console.log('Reached bottom of page');
-    checkForMatchEntries();
-  });
+function scrapeMatches(minCmInput) {
+  console.log('scrapeMatches start');
+  const matchListUrl = window.location.href;
+
+  // const allMatches = [];
+  // const currBatch = [];
+
+  filterMatches(minCmInput);
+
+  function filterMatches(minCmInput, minCm = 30, maxCm = 3490) {
+    console.log('filter matches minCm:', minCmInput);
+
+    // base case: once minCm <= to min input, stop
+    if (maxCm < minCmInput) {
+      // process match list array
+      console.log('matches processed');
+    }
+
+    // recursive case: reduce max/min and repeat
+    else if (maxCm >= minCmInput) {
+      minCm = Math.max(minCm, minCmInput);
+
+      chrome.runtime.sendMessage({
+        message: 'updateUrl',
+        url: matchListUrl,
+        minCm: minCm,
+        maxCm: maxCm,
+      });
+
+      window.addEventListener('load', () => {
+        console.log('content loaded');
+        scrollToBottom(() => {
+          console.log('Reached bottom of page');
+          checkForMatchEntries();
+        });
+
+        // recursively call filterMatches
+        let newMinCm;
+        let newMaxCm;
+        if (minCm > 20) {
+          newMinCm = minCm - 5;
+          newMaxCm = newMinCm + 4;
+        } else {
+          newMinCm = minCm - 1;
+          newMaxCm = newMinCm;
+        }
+
+        filterMatches(minCmInput, newMinCm, newMaxCm);
+      });
+    }
+
+    console.log('filter matches done');
+  }
 
   function scrollToBottom(callback) {
     let lastHeight = 0;
-    let timeoutId = null;
+    let count = 0;
+    const maxCount = 3; // Max attempts before determining end of page has been reached
     const interval = setInterval(() => {
       window.scrollTo(0, document.body.scrollHeight);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => {
-        const newHeight = document.body.scrollHeight;
-        if (newHeight === lastHeight) {
+      const newHeight = document.body.scrollHeight;
+      if (newHeight === lastHeight) {
+        count++;
+        if (count >= maxCount) {
           clearInterval(interval);
           callback();
-        } else {
-          lastHeight = newHeight;
         }
-      }, 0); // Adjust the timeout as needed
+      } else {
+        lastHeight = newHeight;
+        count = 0; // Reset count
+      }
     }, 1000); // Adjust the interval as needed
   }
 
@@ -61,6 +109,9 @@ function scrapeMatches() {
           tags.push(child.ariaLabel.replace('In group ', ''));
         }
       }
+
+      // if number of matches in previous batch is modular 100 redo it (just keep going without changing url?)
+      //  in this case if the number still doesn't change after continuing assume it is correct
 
       console.log(
         `

@@ -6,8 +6,9 @@
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'scrapeMatches') {
-    console.log('Scraping matches...');
-    scrapeMatches();
+    console.log('scrapeMatches message received in foreground');
+    const minCmInput = message.args[0];
+    scrapeMatches(minCmInput);
   }
 });
 
