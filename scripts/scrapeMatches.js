@@ -7,7 +7,13 @@ function scrapeMatches(minCmInput) {
   // const allMatches = [];
   // const currBatch = [];
 
-  filterMatches(minCmInput);
+  if (
+    matchListUrl.startsWith(
+      'https://www.ancestry.com/discoveryui-matches/list/'
+    )
+  ) {
+    filterMatches(minCmInput);
+  }
 
   function filterMatches(minCmInput, minCm = 30, maxCm = 3490) {
     console.log('filter matches minCm:', minCmInput);
@@ -21,37 +27,55 @@ function scrapeMatches(minCmInput) {
     // recursive case: reduce max/min and repeat
     else if (maxCm >= minCmInput) {
       minCm = Math.max(minCm, minCmInput);
+      console.log('recursive case');
 
-      chrome.runtime.sendMessage({
-        message: 'updateUrl',
-        url: matchListUrl,
-        minCm: minCm,
-        maxCm: maxCm,
-      });
-
-      window.addEventListener('load', () => {
-        console.log('content loaded');
-        scrollToBottom(() => {
-          console.log('Reached bottom of page');
-          checkForMatchEntries();
-        });
-
-        // recursively call filterMatches
-        let newMinCm;
-        let newMaxCm;
-        if (minCm > 20) {
-          newMinCm = minCm - 5;
-          newMaxCm = newMinCm + 4;
-        } else {
-          newMinCm = minCm - 1;
-          newMaxCm = newMinCm;
+      chrome.runtime.sendMessage(
+        {
+          message: 'updateUrl',
+          url: matchListUrl,
+          minCm: minCm,
+          maxCm: maxCm,
+        },
+        (response) => {
+          // console.log('response', response);
+          console.log('loading matches');
         }
+      );
 
-        filterMatches(minCmInput, newMinCm, newMaxCm);
-      });
+      console.log('loading matches');
+
+      // scrollToBottom(() => {
+      //   console.log('Reached bottom of page');
+      //   checkForMatchEntries();
+      // });
+
+      // // recursively call filterMatches
+      // let newMinCm;
+      // let newMaxCm;
+      // if (minCm > 20) {
+      //   newMinCm = minCm - 5;
+      //   newMaxCm = newMinCm + 4;
+      // } else {
+      //   newMinCm = minCm - 1;
+      //   newMaxCm = newMinCm;
+      // }
+
+      // filterMatches(minCmInput, newMinCm, newMaxCm);
+    }
+  }
+
+  // Confirm page loaded by looking for a match element (traditional event listeners don't work)
+  function loadMatches() {
+    const matches = document.getElementsByClassName('matchGrid');
+    console.log('matches count:', matches.length);
+    if (matches.length >= 50) {
+      console.log('Matches loaded');
+      return;
     }
 
-    console.log('filter matches done');
+    setTimeout(function () {
+      loadMatches();
+    }, 1000);
   }
 
   function scrollToBottom(callback) {
