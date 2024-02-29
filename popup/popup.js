@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const minCmInput = document.getElementById('minCmInput').value;
     console.log('Scrape button clicked');
     console.log('min cm input:', minCmInput);
-    sendMessage('scrapeMatches', minCmInput);
+    sendMessage('updateUrl', minCmInput);
   });
 
   const addToTreeBtn = document.getElementById('addToTreeBtn');
