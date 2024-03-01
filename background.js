@@ -9,18 +9,29 @@
 
 console.log('Background script running');
 
-// listen for message to update url
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'updateUrl') {
-    console.log('update url message received');
-    const { url, minCm, maxCm } = message;
-    const newUrl = `${url}?minshareddna=${minCm}&maxshareddna=${maxCm}`;
+function messageListener() {
+  matchList = [];
 
-    chrome.tabs.update(sender.tab.id, { url: newUrl });
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // listen for message to update url
+    if (message.action === 'updateUrl') {
+      console.log('update url message received');
+      const { url, minCm, maxCm } = message;
+      const newUrl = `${url}?minshareddna=${minCm}&maxshareddna=${maxCm}`;
 
-    return true;
-  }
-});
+      chrome.tabs.update(sender.tab.id, { url: newUrl });
+
+      return true;
+    }
+    // listen for message to store matches
+    else if (message.action === 'storeMatches') {
+      matchList = matchList.concat(message.matches);
+      console.log(`Matches stored: ${matchList.length}`);
+    }
+  });
+}
+
+messageListener();
 
 // once URL changes and page is loaded, send message to scrape matches
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -30,8 +41,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       if (tab && tab.url && tab.url.indexOf('?') > -1) {
         chrome.tabs.sendMessage(tabId, { action: 'scrapeMatches' });
         console.log('url updated, scrape matches message sent');
-        incrementCounter();
-        console.log(`Counter value: ${counter}`);
       }
     });
   }

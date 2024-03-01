@@ -62,7 +62,7 @@ function scrapeMatches() {
   function scrollToBottom(callback) {
     let lastHeight = 0;
     let count = 0;
-    const maxCount = 3; // Max attempts before determining end of page has been reached
+    const maxCount = 1; // Max attempts before determining end of page has been reached
     const interval = setInterval(() => {
       window.scrollTo(0, document.body.scrollHeight);
       const newHeight = document.body.scrollHeight;
@@ -131,6 +131,12 @@ function scrapeMatches() {
         tags: tags,
       });
     }
+
+    // send message to bg to store matches
+    chrome.runtime.sendMessage({
+      action: 'storeMatches',
+      matches: matchInfo,
+    });
 
     console.log(matchInfo);
   }
