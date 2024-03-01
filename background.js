@@ -8,6 +8,8 @@
 // The path should be relative to the file `manifest.json`.
 
 console.log('Background script running');
+// initialize variable as false to allow updateListener to fire once
+let matchListUrlUpdated = false;
 
 function messageListener() {
   matchList = [];
@@ -18,6 +20,9 @@ function messageListener() {
       console.log('update url message received');
       const { url, minCm, maxCm } = message;
       const newUrl = `${url}?minshareddna=${minCm}&maxshareddna=${maxCm}`;
+
+      // reset vatiable to false to allow updateListener to fire once in response to url filter change
+      matchListUrlUpdated = false;
 
       chrome.tabs.update(sender.tab.id, { url: newUrl });
 
@@ -33,15 +38,20 @@ function messageListener() {
 
 messageListener();
 
-// once URL changes and page is loaded, send message to scrape matches
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      // only send if there are min/max and before scrolling
-      if (tab && tab.url && tab.url.indexOf('?') > -1) {
-        chrome.tabs.sendMessage(tabId, { action: 'scrapeMatches' });
-        console.log('url updated, scrape matches message sent');
-      }
-    });
+function updateListener(tabId, changeInfo, tab) {
+  // once URL changes and page is loaded, send message to scrape matches
+  if (
+    !matchListUrlUpdated &&
+    changeInfo.status === 'complete' &&
+    tab.url &&
+    tab.url.indexOf('?') > -1
+  ) {
+    chrome.tabs.sendMessage(tabId, { action: 'scrapeMatches' });
+
+    // set variable to true so updateListener won't re-fire each time scrolling changes the url
+    matchListUrlUpdated = true;
+    console.log('url updated, scrape matches message sent');
   }
-});
+}
+
+chrome.tabs.onUpdated.addListener(updateListener);

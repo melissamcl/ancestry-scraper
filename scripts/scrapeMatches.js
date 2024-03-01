@@ -22,10 +22,15 @@ function updateUrl(minCmInput) {
     return;
   }
   // This batching logic attempts to load 500-1000 matches at a time
-  // if current min is > 20, reduce new min by 5, but don't go below minCmInput
-  else if (minCmApplied > 20) {
+  // if current min is > 20, reduce new min by 5, but don't go below minCmInput (range 25-30)
+  else if (minCmApplied > 25) {
     newMaxCm = minCmApplied - 1;
     newMinCm = Math.max(minCmInput, minCmApplied - 5);
+  }
+  // if current min is 20-24, ranges 23-24, 21-22
+  else if (minCmApplied > 20) {
+    newMaxCm = minCmApplied - 1;
+    newMinCm = Math.max(minCmInput, minCmApplied - 2);
   }
   // if current min is 20 or below, reduce by 1cm at a time
   else if (minCmApplied <= 20) {
@@ -62,21 +67,28 @@ function scrapeMatches() {
   function scrollToBottom(callback) {
     let lastHeight = 0;
     let count = 0;
-    const maxCount = 1; // Max attempts before determining end of page has been reached
+    const maxCount = 5; // Max attempts before determining end of page has been reached
     const interval = setInterval(() => {
       window.scrollTo(0, document.body.scrollHeight);
       const newHeight = document.body.scrollHeight;
-      if (newHeight === lastHeight) {
+      // check for "Our backend services are overtaxed..." warning and stop
+      const matchWarning = document.getElementsByClassName('noMatchDisplay');
+
+      if (newHeight === lastHeight && matchWarning.length === 0) {
         count++;
+        console.log('scroll attempts', count);
         if (count >= maxCount) {
           clearInterval(interval);
           callback();
+        } else if (matchWarning.length > 0) {
+          // handle error - can we reset without losing previously stored matches?
+          console.log('Ancestry error');
         }
       } else {
         lastHeight = newHeight;
         count = 0; // Reset count
       }
-    }, 1000); // Adjust the interval as needed
+    }, 800); // Adjust the interval as needed
   }
 
   function getMatches() {
@@ -142,6 +154,7 @@ function scrapeMatches() {
   }
 
   loadMatches();
+  console.log('matches loaded');
   scrollToBottom(() => {
     console.log('Reached bottom of page');
     getMatches();
