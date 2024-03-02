@@ -13,8 +13,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   // message following url update from background
   else if (message.action === 'scrapeMatches') {
-    console.log('Url updated, scraping matches');
-    scrapeMatches();
+    async function scrapeAndDownloadMatches() {
+      console.log('Url updated, scraping matches');
+      await scrapeMatches();
+
+      console.log('Running download matches');
+      downloadMatchesAndResetUrl();
+    }
+
+    scrapeAndDownloadMatches();
   }
 
   // // message from Add match button in popup

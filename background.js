@@ -33,6 +33,12 @@ function messageListener() {
       matchList = matchList.concat(message.matches);
       console.log(`Matches stored: ${matchList.length}`);
     }
+    // listen for request to send matches
+    else if (message.action === 'getAllMatches') {
+      // reset url to top of list
+      chrome.tabs.update(sender.tab.id, { url: message.url });
+      sendResponse({ matches: matchList });
+    }
   });
 }
 

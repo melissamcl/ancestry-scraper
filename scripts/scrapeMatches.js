@@ -153,10 +153,41 @@ function scrapeMatches() {
     console.log(matchInfo);
   }
 
-  loadMatches();
-  console.log('matches loaded');
-  scrollToBottom(() => {
-    console.log('Reached bottom of page');
-    getMatches();
+  return new Promise((resolve, reject) => {
+    loadMatches();
+    scrollToBottom(() => {
+      console.log('Reached bottom of page');
+      getMatches();
+      resolve();
+    });
   });
+}
+
+function downloadMatchesAndResetUrl() {
+  const url = window.location.href;
+  const matchListUrl = url.split('?')[0];
+
+  console.log('Download matches started');
+  chrome.runtime.sendMessage(
+    { action: 'getAllMatches', url: matchListUrl },
+    (response) => {
+      console.log('download message sent');
+      if (response && response.matches) {
+        const json = JSON.stringify(response.matches);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        // Create a download link and click it to trigger the download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'matches.json';
+        document.body.appendChild(a);
+        a.click();
+
+        // Clean up
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    }
+  );
 }
