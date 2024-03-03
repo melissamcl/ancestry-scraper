@@ -7,9 +7,24 @@
     <script src="popup.js"></script>
   </head>
   <body>
-    <input id="minCmInput" type="number" name="quantity" min="0" max="3490" />
+    <input
+      id="minCmInput"
+      type="number"
+      name="quantity"
+      min="6"
+      max="3490"
+      placeholder="min"
+    />
+    <input
+      id="maxCmInput"
+      type="number"
+      name="quantity"
+      min="6"
+      max="3490"
+      placeholder="max"
+    />
     <button id="scrapeBtn">Scrape matches</button>
-    <br />
-    <button id="addToTreeBtn">Add to tree</button>
+    <button id="mutualMatchesBtn" disabled>Scrape mutual matches</button>
+    <!-- <button id="addToTreeBtn">Add to tree</button>  -->
   </body>
 </html>

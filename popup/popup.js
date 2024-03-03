@@ -11,10 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Scrape button clicked');
     console.log('min cm input:', minCmInput);
     sendMessage('updateUrl', minCmInput);
+    // TODO: add disabled download button and max input to handle backend servers taxed message
+    // auto download on that message?
   });
 
-  const addToTreeBtn = document.getElementById('addToTreeBtn');
-  addToTreeBtn.addEventListener('click', () => {
-    sendMessage('addMatchToTree');
+  const mutualMatchesBtn = document.getElementById('mutualMatchesBtn');
+  scrapeBtn.addEventListener('click', () => {
+    console.log('Mutual matches button clicked');
+    sendMessage('scrapeMutualMatches');
   });
+
+  // const addToTreeBtn = document.getElementById('addToTreeBtn');
+  // addToTreeBtn.addEventListener('click', () => {
+  //   sendMessage('addMatchToTree');
+  // });
 });

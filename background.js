@@ -17,8 +17,12 @@ let scrapeMatchesClicked = false;
 let matchListId;
 let matchListName;
 
+// initialize second tab to open matches and get mutual matches
+let secondTabId;
+
 function messageListener() {
   let matchList = [];
+  let mutualMatchList = [];
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // listen for message to update url
@@ -60,6 +64,7 @@ function messageListener() {
         },
       });
     }
+    // listen for request to get mutual matches
   });
 }
 
@@ -86,3 +91,55 @@ function updateListener(tabId, changeInfo, tab) {
 }
 
 chrome.tabs.onUpdated.addListener(updateListener);
+
+/*
+mutual matches process
+create variable mutualMatchList = []
+after json download:
+activate button to download mutual match data
+
+send message to background: scrapeMutualMatches - define as function for recursive call
+set matchIndex to 0
+if matchIndex < matchList.length:
+match = matchList[matchIndex]
+  if match.relationship is not Mother, Father, Sister, or Brother
+    matchId = match.id
+    open url: `https://www.ancestry.com/discoveryui-matches/compare/${matchListId}/with/${matchId}/sharedmatches`
+
+    send message to foreground: scrapeMutualMatches
+    message listener in foreground: scrapeMutualMatches
+      wait for at least one match to load OR getElementsByClassName "noMatchDisplay" > 0
+      if matches:
+        let mutualMatches = [];
+
+        wait for matches to load and then scroll to bottom (existing script) and scrape
+        loadMutualMatches();
+        scrollToBottom(() => {
+          console.log('Reached bottom of page');
+          getMutualMatches();
+        });
+
+        getMutualMatches:
+          const matches = document.querySelectorAll('.matchGrid');
+          for (const match of matches) {
+            const mutualMatchId = match.id.substring(5);
+            push to mutualMatches array: mutualMatchId
+          
+          send message to background: 
+            message: storeMutualMatches
+            mutualMatches: { id: matchId, mutualMatches: [mutualMatches]}
+          
+          if backend server message: 
+            send message to background: scrapeMutualMatches to repeat same match
+
+          background listener:
+          else if (message.action === 'storeMutualMatches') {
+          mutualMatchList = mutualMatchList.concat(message.matches);
+          matchIndex++
+          if matchIndex < matchList.length:
+            call scrapeMutualMatches
+          else: 
+            download mutual matches
+          console.log(`Matches stored: ${mutualMatchList.length}`);
+    }
+*/

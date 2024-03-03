@@ -61,6 +61,7 @@ function scrapeMatches() {
   function loadMatches() {
     const matches = document.getElementsByClassName('matchGrid');
     console.log('matches count:', matches.length);
+    // TODO: if no matches found proceed
     if (matches.length >= 100) {
       console.log('Matches loaded');
       return true;
