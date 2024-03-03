@@ -23,6 +23,5 @@ const testGuids = [
 const commonAncestors = `https://www.ancestry.com/discoveryui-matchesservice/api/samples/${testId}/matchesv2/additionalInfo?ids=${testGuids}&ancestors=true`;
 const trees = `https://www.ancestry.com/discoveryui-matchesservice/api/samples/${testId}/matchesv2/additionalInfo?ids=${testGuids}&tree=true`;
 
-const testGuid = 'BF136ED5-2E85-4AA7-ACCA-B17E94DF29F2';
-const mutualMatchList = `https://www.ancestry.com/discoveryui-matchesservice/api/samples/${testId}/matches/list?page=1&relationguid=${testGuid}&sortby=RELATIONSHIP&_t=1709438017089`;
+const mutualMatchList = `https://www.ancestry.com/discoveryui-matchesservice/api/samples/${testId}/matches/list?page=1&relationguid=${testGuid}&sortby=RELATIONSHIP`;
 // same logic as original match list
