@@ -10,16 +10,30 @@
 console.log('Background script running');
 // initialize variable as false to allow updateListener to fire once
 let matchListUrlUpdated = false;
+let minCmInput = 0;
+
+// initialize as false so user changes to url (filters/scolling) don't kick off updateListener script
+let scrapeMatchesClicked = false;
+let matchListId;
+let matchListName;
 
 function messageListener() {
-  matchList = [];
+  let matchList = [];
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // listen for message to update url
     if (message.action === 'updateUrl') {
+      scrapeMatchesClicked = true;
+
+      // update variable for use in updateListener
+      minCmInput = message.minCmInput;
+
       console.log('update url message received');
       const { url, minCm, maxCm } = message;
       const newUrl = `${url}?minshareddna=${minCm}&maxshareddna=${maxCm}`;
+
+      matchListId = new URL(url).pathname.split('/').pop();
+      matchListName = message.matchListName;
 
       // reset vatiable to false to allow updateListener to fire once in response to url filter change
       matchListUrlUpdated = false;
@@ -36,8 +50,15 @@ function messageListener() {
     // listen for request to send matches
     else if (message.action === 'getAllMatches') {
       // reset url to top of list
+      scrapeMatchesClicked = false;
       chrome.tabs.update(sender.tab.id, { url: message.url });
-      sendResponse({ matches: matchList });
+      sendResponse({
+        matchList: {
+          matchListId: matchListId,
+          matchListName: matchListName,
+          matches: matchList,
+        },
+      });
     }
   });
 }
@@ -47,12 +68,16 @@ messageListener();
 function updateListener(tabId, changeInfo, tab) {
   // once URL changes and page is loaded, send message to scrape matches
   if (
+    scrapeMatchesClicked &&
     !matchListUrlUpdated &&
     changeInfo.status === 'complete' &&
     tab.url &&
     tab.url.indexOf('?') > -1
   ) {
-    chrome.tabs.sendMessage(tabId, { action: 'scrapeMatches' });
+    chrome.tabs.sendMessage(tabId, {
+      action: 'scrapeMatches',
+      minCmInput: minCmInput,
+    });
 
     // set variable to true so updateListener won't re-fire each time scrolling changes the url
     matchListUrlUpdated = true;

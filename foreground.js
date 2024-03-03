@@ -7,8 +7,8 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // message from Scrape matches button in popup
   if (message.action === 'updateUrl') {
-    console.log('Scrape matches pressed, updating URL');
     const minCmInput = message.args[0];
+    console.log('Scrape matches pressed, updating URL');
     updateUrl(minCmInput);
   }
   // message following url update from background
@@ -17,8 +17,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.log('Url updated, scraping matches');
       await scrapeMatches();
 
-      console.log('Running download matches');
-      downloadMatchesAndResetUrl();
+      console.log('Running update url');
+      updateUrl(message.minCmInput);
     }
 
     scrapeAndDownloadMatches();

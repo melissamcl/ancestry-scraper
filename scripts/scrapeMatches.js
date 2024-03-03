@@ -19,6 +19,7 @@ function updateUrl(minCmInput) {
   // if max of minCmApplied/maxCmApplied <= stopAtCm, stop
   // maxCm may be null when the max is really 3490
   else if (Math.max(minCmApplied, maxCmApplied) <= stopAtCm) {
+    downloadMatchesAndResetUrl();
     return;
   }
   // This batching logic attempts to load 500-1000 matches at a time
@@ -38,6 +39,11 @@ function updateUrl(minCmInput) {
     newMaxCm = newMinCm;
   }
 
+  // get page title for match name
+  const matchListName = document
+    .getElementsByClassName('pageTitle')[0]
+    .innerText.replace("'s DNA Matches", '');
+
   // send message to bg to update url
   chrome.runtime.sendMessage({
     action: 'updateUrl',
@@ -45,6 +51,7 @@ function updateUrl(minCmInput) {
     minCm: newMinCm,
     maxCm: newMaxCm,
     minCmInput: minCmInput,
+    matchListName: matchListName,
   });
 }
 
@@ -172,15 +179,15 @@ function downloadMatchesAndResetUrl() {
     { action: 'getAllMatches', url: matchListUrl },
     (response) => {
       console.log('download message sent');
-      if (response && response.matches) {
-        const json = JSON.stringify(response.matches);
+      if (response && response.matchList) {
+        const json = JSON.stringify(response.matchList);
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
 
         // Create a download link and click it to trigger the download
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'matches.json';
+        a.download = 'matchList.json';
         document.body.appendChild(a);
         a.click();
 
