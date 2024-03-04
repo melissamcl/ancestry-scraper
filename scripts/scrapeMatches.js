@@ -1,21 +1,35 @@
-const { isIterable } = require('es-iter');
+async function fetchDataWithRetries(url) {
+  let retries = 0;
+  const maxRetries = 3;
+  let delayRange = [1000, 3000]; // Initial delay range 1-3s
 
-async function fetchData(url) {
-  try {
-    let response = await fetch(url);
-    let data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching JSON:', error);
-    return null;
+  while (retries < maxRetries) {
+    let delay =
+      Math.floor(Math.random() * (delayRange[1] - delayRange[0] + 1)) +
+      delayRange[0];
+
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    try {
+      let response = await fetch(url);
+      let data = await response.json();
+      return data;
+    } catch (error) {
+      retries++;
+
+      // Increase the delay range for the next retry
+      delayRange = [delayRange[0] * 2, delayRange[1] * 2]; // Double the range
+    }
   }
+
+  throw new Error('Failed to fetch data after max retries'); // Throw error if max retries reached
 }
 
 async function scrapeMatches(testId) {
   console.log(`Scrape matches function running for test ${testId}`);
 
   // get user details for inclusion in jsons
-  const userDetails = await fetchData(
+  const userDetails = await fetchDataWithRetries(
     `https://www.ancestry.com/discoveryui-matchesservice/api/samples/${testId}/details`
   );
   const { displayName, userId } = userDetails;
@@ -39,7 +53,7 @@ async function scrapeMatches(testId) {
 
     // fetch data (add timestamp for api/caching)
     const unixTime = Math.floor(Date.now() / 1000);
-    let data = await fetchData(`${url}&_t=${unixTime}`);
+    let data = await fetchDataWithRetries(`${url}&_t=${unixTime}`);
 
     // extract matches from result
     for (const matchGroup of data.matchGroups) {
@@ -49,89 +63,101 @@ async function scrapeMatches(testId) {
     // set next bookmark and call recursively, or return result if no more matches
     if (
       data.bookmarkData &&
-      data.bookmarkData.moreMatchesAvailable &&
-      data.bookmarkData.lastMatchesServicePageIdx < 1
+      data.bookmarkData.moreMatchesAvailable
+      // && data.bookmarkData.lastMatchesServicePageIdx < 1
     ) {
       const bookmarkData = JSON.stringify(data.bookmarkData);
       console.log(data.bookmarkData.lastMatchesServicePageIdx);
 
-      // add delay to avoid api issues:
-      const delay = Math.floor(Math.random() * 3000) + 1000;
-      await new Promise((resolve) => setTimeout(resolve, delay));
       return await getMatches(relationguid, matches, bookmarkData);
     } else {
       return matches;
     }
   }
 
+  // parse all matches from an array of matches
   function parseData(matches) {
     // parse out relevant pieces of data for export
+
     let matchesForExport = [];
 
-    for (const match of matches) {
-      const {
-        displayName,
-        userId,
-        adminDisplayName,
-        adminUcdmId,
-        testGuid,
-        subjectGender,
-        relationship,
-        createdDate,
-        tags,
-        note,
-        maternal,
-        paternal,
-        mothersSide,
-        fathersSide,
-        relationshipLabel,
-      } = match;
+    if (matches && matches.length) {
+      for (const match of matches) {
+        const {
+          displayName,
+          userId,
+          adminDisplayName,
+          adminUcdmId,
+          testGuid,
+          subjectGender,
+          relationship,
+          createdDate,
+          tags,
+          note,
+          maternal,
+          paternal,
+          mothersSide,
+          fathersSide,
+          relationshipLabel,
+        } = match;
 
-      const matchForExport = {
-        name: displayName,
-        userId: userId,
-        adminName: adminDisplayName,
-        adminId: adminUcdmId,
-        testId: testGuid,
-        gender: subjectGender,
-        dna: relationship,
-        createdDate: createdDate,
-        tags: tags,
-        note: note,
-        calculatedMaternal: maternal,
-        calculatedPaternal: paternal,
-        userLabeledMaternal: mothersSide,
-        userLabeledPaternal: fathersSide,
-        relationshipLabel: relationshipLabel,
-      };
+        const matchForExport = {
+          name: displayName,
+          userId: userId,
+          adminName: adminDisplayName,
+          adminId: adminUcdmId,
+          testId: testGuid,
+          gender: subjectGender,
+          dna: relationship,
+          createdDate: createdDate,
+          tags: tags,
+          note: note,
+          calculatedMaternal: maternal,
+          calculatedPaternal: paternal,
+          userLabeledMaternal: mothersSide,
+          userLabeledPaternal: fathersSide,
+          relationshipLabel: relationshipLabel,
+        };
 
-      matchesForExport.push(matchForExport);
+        matchesForExport.push(matchForExport);
+      }
     }
-
     return matchesForExport;
   }
 
   // get primary match data
   try {
     const primaryMatches = await getMatches();
-    const primaryMatchesForExport = parseData(primaryMatches);
+    const primaryMatchesForExport = {
+      matchId: match.testGuid,
+      matches: parseData(primaryMatches),
+    };
+
     downloadMatches(primaryMatchesForExport, displayName, userId, testId);
 
     // get mutual matches
     const mutualMatches = [];
+    let i = 0;
     for (const match of primaryMatches) {
-      console.log(`processing match ${match.displayName}`);
-      const mutualMatchData = await getMatches(match.testGuid);
-      mutualMatches.push({
-        mutualMatchId: match.testId,
-        matches: mutualMatchData,
-      });
+      // if (i >= 3) {
+      //   break;
+      // }
+      console.log(`${++i} ${match.displayName}`);
+      try {
+        const mutualMatchData = await getMatches(match.testGuid);
+        mutualMatches.push({
+          matchId: match.testGuid,
+          matches: parseData(mutualMatchData),
+        });
+      } catch (error) {
+        console.error('Error while getting mutual matches:', error);
+      }
     }
 
-    // TODO: refactor parseData to work with mutualMatches format
-    const mutualMatchesForExport = parseData(mutualMatches);
+    console.log(mutualMatches);
+
     downloadMatches(
-      mutualMatchesForExport,
+      mutualMatches,
       displayName,
       userId,
       testId,
