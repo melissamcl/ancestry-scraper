@@ -25,6 +25,15 @@ async function fetchDataWithRetries(url) {
   throw new Error('Failed to fetch data after max retries'); // Throw error if max retries reached
 }
 
+// TODO: add check for match added date for periodic scrapes (sory by date?)
+// &closematches=true &sortby=DATE
+// add dropdown with query options?
+// TODO: add some functionality to allow pausing script and picking up later
+// add download option to popup to get matches earlier
+//  add and trigger a listener at the end of for loop
+//  export txt file containing options to pick up where it left off next time / figure out how to integrate
+// TODO: add visible progress bar that updates
+
 async function scrapeMatches(testId) {
   console.log(`Scrape matches function running for test ${testId}`);
 
