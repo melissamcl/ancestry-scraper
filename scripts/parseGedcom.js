@@ -53,14 +53,6 @@ class Stack {
 }
 
 /*
-// if level is 0, push existing currentObj[0] to json array, create new object with key = tag, value empty object
-// set currentObj to []
-// set currentObj[level] to outer object
-// set currentObj[level + 1] to currentObj[level][tag] // currentObj[0]['HEAD'] = {}
-// currentObj = [{ HEAD: ... }, {}]
-0 HEAD
-  { HEAD: {} }
-
 // level > 0, no value: 
 // if !currentObj[level][tag], currentObj[level][tag] = {} // currentObj[1]['SUBM'] = {}
 // currObj[level + 1] = currentObj[level][tag]
@@ -108,7 +100,7 @@ class Stack {
 function parseGedcom(gedcomData) {
   const arr = gedcomData.trim().split('\n');
   const json = [];
-  let currentObjects = [];
+  let currentObj = [];
 
   const lines = new Stack();
   for (let i = arr.length - 1; i >= 0; i--) {
@@ -156,8 +148,7 @@ function parseGedcom(gedcomData) {
       }
     }
 
-    // process lines with values and additional properties
-    // if current line has value and next line level is greater than current line
+    // process lines that have both a value and additional properties in next lines
     if (value && lines.peek() && parseInt(lines.peek().split(' ')[0]) > level) {
       // push same line with level + 1 to process as a property of current tag
       lines.push(`${++level} ${tag} ${value}`);
@@ -167,29 +158,63 @@ function parseGedcom(gedcomData) {
       continue;
     }
 
-    console.log(`${level} ${tag} ${value}`);
+    // set value to empty obj if there is no text value
+    if (!value) {
+      value = {};
+    }
+
+    // process level 0
+    if (level === 0) {
+      // push existing outer obj onto json array
+      if (currentObj.length) {
+        json.push(currentObj[0]);
+      }
+
+      // reset currentObj
+      currentObj = [{}];
+    }
+
+    // if tag doesn't already exist as a key, add it
+    const valRef = currentObj[level][tag];
+    if (!valRef) {
+      currentObj[level][tag] = value;
+    }
+
+    // if key already exists, value should be an array
+    else {
+      // if not already an array, create it
+      if (!Array.isArray(valRef)) {
+        currentObj[level][tag] = [valRef];
+      }
+
+      // push value to end of array
+      currentObj[level][tag].push(value);
+    }
+
+    // set currentObj reference for next level, if applicable
+    if (typeof value === 'object') currentObj[level + 1] = value;
   }
   // return json;
 
-  // console.log(json);
+  console.log(json);
 }
 
-const test = () => {
-  const fs = require('fs');
+// const test = () => {
+//   const fs = require('fs');
 
-  // Path to your text file
-  const filePath = 'test_files/test.ged';
+//   // Path to your text file
+//   const filePath = 'test_files/test.ged';
 
-  // Read the file asynchronously
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
+//   // Read the file asynchronously
+//   fs.readFile(filePath, 'utf8', (err, data) => {
+//     if (err) {
+//       console.error(err);
+//       return;
+//     }
 
-    // File contents are stored in the 'data' variable
-    parseGedcom(data);
-  });
-};
+//     // File contents are stored in the 'data' variable
+//     parseGedcom(data);
+//   });
+// };
 
-test();
+// test();
