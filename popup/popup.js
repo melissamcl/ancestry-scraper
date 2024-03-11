@@ -46,6 +46,23 @@ document.addEventListener('DOMContentLoaded', () => {
     sendMessage('scrapeMatches', dropdown.value);
   });
 
+  const parseGedBtn = document.getElementById('parseGedBtn');
+  parseGedBtn.addEventListener('click', () => {
+    console.log('Parse gedcom button clicked');
+    let fileInput = document.getElementById('gedInput');
+    let file = fileInput.files[0];
+    if (file) {
+      let reader = new FileReader();
+      reader.onload = function (event) {
+        let gedcomData = event.target.result;
+        sendMessage('parseGedcom', gedcomData);
+      };
+      reader.readAsText(file);
+    } else {
+      console.error('No file selected.');
+    }
+  });
+
   // const mutualMatchesBtn = document.getElementById('mutualMatchesBtn');
   // scrapeBtn.addEventListener('click', () => {
   //   console.log('Mutual matches button clicked');

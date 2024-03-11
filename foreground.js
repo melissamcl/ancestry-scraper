@@ -11,6 +11,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     scrapeMatches(message.args[0]);
   }
 
+  // message from Parse gedcom button in popup
+  else if (message.action === 'parseGedcom') {
+    console.log('Parse gedcom message received, calling function');
+    parseGedcom(message.args[0]);
+
+    // const reader = new FileReader();
+    // reader.onload = function (e) {
+    //   const gedcomData = e.target.result;
+    //   const parsedData = parseGedcom(gedcomData);
+    //   document.getElementById('output').textContent = JSON.stringify(
+    //     parsedData,
+    //     null,
+    //     2
+    //   );
+    // };
+    // reader.readAsText(file);
+  }
+
   // // message from Add match button in popup
   // else if (message.action === 'addMatchToTree') {
   //   addMatchToTree();

@@ -23,6 +23,7 @@
       "js": [
         "scripts/scrapeMatches.js",
         "scripts/addToTree.js",
+        "scripts/parseGedcom.js",
         "foreground.js"
       ],
       "matches": ["https://www.ancestry.com/*"]
