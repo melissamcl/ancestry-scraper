@@ -190,18 +190,21 @@ function downloadMatches(matches, name, userId, testId, description = '') {
     matches: matches,
   };
 
-  const json = JSON.stringify(matches);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  downloadJSON(matches, `${name}${description}`);
 
-  // Create a download link and click it to trigger the download
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${name}${description}.json`;
-  document.body.appendChild(a);
-  a.click();
+  // const json = JSON.stringify(matches);
 
-  // Clean up
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // const blob = new Blob([json], { type: 'application/json' });
+  // const url = URL.createObjectURL(blob);
+
+  // // Create a download link and click it to trigger the download
+  // const a = document.createElement('a');
+  // a.href = url;
+  // a.download = `${name}${description}.json`;
+  // document.body.appendChild(a);
+  // a.click();
+
+  // // Clean up
+  // document.body.removeChild(a);
+  // URL.revokeObjectURL(url);
 }

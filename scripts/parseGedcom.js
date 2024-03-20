@@ -1,15 +1,3 @@
-// if level >= previous level:
-//   add new key, value pair to current object:
-//     key = tag
-//     value =
-//       if next level <= current level and value exists, value
-//       if next level > current value and value exists, object containing value and set first key as current tag with value
-//       if next level > current value and no value, empty object
-//     if value is object, set current object pointer to value
-//   if key already exists in current object, set existing value to array (if not already) and push new value to end of array
-
-// if level < previous level:
-//   change current object to parent object for each -1 difference
 class Node {
   constructor(value) {
     this.value = value;
@@ -52,52 +40,7 @@ class Stack {
   }
 }
 
-/*
-// level > 0, no value: 
-// if !currentObj[level][tag], currentObj[level][tag] = {} // currentObj[1]['SUBM'] = {}
-// currObj[level + 1] = currentObj[level][tag]
-// else if Array.isArray(currentObj[level][tag]) { 
-  currentObj[level][tag].push(__) 
-  currentObj[level + 1] = currentObj[level][tag][array.length - 1]
-}
-// currentObj = [{ HEAD: ... }, { SUBM: ... }, {}]
-1 SUBM
-  {
-    HEAD: {
-      SUBM: {}
-    }
-  }
-
-// level > 0, value
-// if !currentObj[level][tag], currentObj[level][tag] = value // currentObj[2]['ID'] = 'SUMB1'
-// else handle as array
-// currentObj = [{ HEAD: ... }, { SUBM: ... }, { ID: 'SUBM1' }]
-2 ID SUBM1
-  {
-    HEAD: {
-      SUBM: {
-        ID: 'SUBM1'
-      }
-    }
-  }
-
-// level > 0, no value: 
-// if !currentObj[level][tag], currentObj[level][tag] = {} // currentObj[1]['SOUR'] = {}
-// currObj[level + 1] = currentObj[level][tag]
-// else handle as array
-// currentObj = [{ HEAD: ... }, { SUBM: ..., SOUR: ... }, {}]
-1 SOUR
-  {
-    HEAD: {
-      SUBM: {
-        ID: 'SUBM1'
-      },
-      SOUR: {}
-    }
-  }
-*/
-
-function parseGedcom(gedcomData) {
+function parseGedcom(gedcomData, filename) {
   const arr = gedcomData.trim().split('\n');
   const json = [];
   let currentObj = [];
@@ -196,7 +139,8 @@ function parseGedcom(gedcomData) {
   }
   // return json;
 
-  console.log(json);
+  downloadJSON(json, filename);
+  // console.log(json);
 }
 
 // const test = () => {

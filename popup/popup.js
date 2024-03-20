@@ -55,11 +55,24 @@ document.addEventListener('DOMContentLoaded', () => {
       let reader = new FileReader();
       reader.onload = function (event) {
         let gedcomData = event.target.result;
-        sendMessage('parseGedcom', gedcomData);
+        sendMessage('parseGedcom', gedcomData, file.name.slice(0, -4));
       };
       reader.readAsText(file);
     } else {
       console.error('No file selected.');
+    }
+  });
+
+  const openMatchBtn = document.getElementById('openMatchBtn');
+  openMatchBtn.addEventListener('click', () => {
+    console.log('Open match button clicked');
+    let dropdown = document.getElementById('testDropdown');
+    if (dropdown && dropdown.options && dropdown.options.length) {
+      // TODO: figure out the best way to link multiple tests to a tree and persist settings
+      const optionValues = Array.from(dropdown.options)
+        .filter((option) => option.text.includes('Griffin'))
+        .map((option) => option.value);
+      sendMessage('openMatch', optionValues);
     }
   });
 
@@ -69,8 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
   //   sendMessage('scrapeMutualMatches');
   // });
 
-  // const addToTreeBtn = document.getElementById('addToTreeBtn');
-  // addToTreeBtn.addEventListener('click', () => {
-  //   sendMessage('addMatchToTree');
-  // });
+  const addToTreeBtn = document.getElementById('addToTreeBtn');
+  addToTreeBtn.addEventListener('click', () => {
+    console.log('Add to tree button clicked');
+    sendMessage('addMatchToTree');
+  });
 });

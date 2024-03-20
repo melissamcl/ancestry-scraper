@@ -4,6 +4,25 @@
 // Several foreground scripts can be declared
 // and injected into the same or different pages.
 
+const downloadJSON = (obj, filename) => {
+  console.log('downloading json');
+  const json = JSON.stringify(obj);
+
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  // Create a download link and click it to trigger the download
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}.json`;
+  document.body.appendChild(a);
+  a.click();
+
+  // Clean up
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // message from Scrape matches button in popup
   if (message.action === 'scrapeMatches') {
@@ -14,23 +33,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // message from Parse gedcom button in popup
   else if (message.action === 'parseGedcom') {
     console.log('Parse gedcom message received, calling function');
-    parseGedcom(message.args[0]);
-
-    // const reader = new FileReader();
-    // reader.onload = function (e) {
-    //   const gedcomData = e.target.result;
-    //   const parsedData = parseGedcom(gedcomData);
-    //   document.getElementById('output').textContent = JSON.stringify(
-    //     parsedData,
-    //     null,
-    //     2
-    //   );
-    // };
-    // reader.readAsText(file);
+    // call parse gedcom with gedcom file reference and file name
+    parseGedcom(message.args[0], message.args[1]);
   }
 
-  // // message from Add match button in popup
-  // else if (message.action === 'addMatchToTree') {
-  //   addMatchToTree();
-  // }
+  // message from Get match button in popup
+  else if (message.action === 'openMatch') {
+    console.log('Open match message received, calling function');
+    // call get match with test ids array as input
+    openMatch(message.args[0]);
+  }
+
+  // message from Add match button in popup
+  else if (message.action === 'addMatchToTree') {
+    console.log('Add match to tree message received, calling function');
+    addMatchToTree();
+  }
 });
