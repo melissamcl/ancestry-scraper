@@ -13,4 +13,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'openLink') {
     chrome.tabs.create({ url: message.url });
   }
+
+  // open in new tab and run script
+  else if (message.action === 'openLinkAndExecuteScript') {
+    let { url, script, args } = message;
+
+    chrome.tabs.create({ url: url }, function (newTab) {
+      chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
+        if (tabId === newTab.id && changeInfo.status === 'complete') {
+          chrome.tabs.onUpdated.removeListener(listener); // Remove the listener
+          console.log(`sending message execute_${script}`);
+          chrome.tabs.sendMessage(newTab.id, {
+            action: `execute_${script}`,
+            args: args,
+          });
+        }
+      });
+    });
+
+    return true;
+  }
 });

@@ -1,10 +1,11 @@
-function checkElement(elId, intId) {
-  console.log('here');
-  if (document.readyState !== 'complete') {
-    return;
+function checkElement(elId, intId, getByClass = false) {
+  let element;
+  if (getByClass) {
+    element = document.getElementsByClassName(elId);
+  } else {
+    element = document.getElementById(elId);
   }
 
-  let element = document.getElementById(elId);
   if (element) {
     clearInterval(intId);
     return element;
@@ -12,10 +13,11 @@ function checkElement(elId, intId) {
 }
 
 function addMatchToTree() {
-  const treeId = '195521292';
-  const url = `https://www.ancestry.com/family-tree/tree/${treeId}`;
-
-  window.location.href = url;
+  console.log('script continuing');
+  const fName = 'FIRST';
+  const lName = 'LAST';
+  const gender = 'Female';
+  const dnaId = 'xxx';
 
   const int1 = setInterval(() => {
     console.log('seeking home btn');
@@ -25,67 +27,115 @@ function addMatchToTree() {
     }
   }, 500);
 
-  // setTimeout(() => {
-  //   // wait 3 sec for home person to load, then click add relative
-  //   let addRel;
-  //   while (!addRel) {
-  //     addRel = document.getElementById('tvAddRelative');
-  //   }
-  //   addRel.click();
+  // wait 1 sec to allow add rel link to reset to home person
+  setTimeout(() => {
+    const int2 = setInterval(() => {
+      console.log('seeking add relative btn');
+      const addRel = checkElement('tvAddRelative', int2);
+      if (addRel) {
+        addRel.click();
+      }
+    }, 500);
 
-  //   // wait another second, then attempt to click add child, retry until el exists
-  //   setTimeout(() => {
-  //     let addChild;
-  //     while (!addChild) {
-  //       addChild = document.getElementById('addChildBtn');
-  //     }
-  //     addChild.click();
+    const int3 = setInterval(() => {
+      console.log('seeking add child btn');
+      const addChild = checkElement('addChildBtn', int3);
+      if (addChild) {
+        addChild.click();
+      }
+    }, 500);
 
-  //     // wait another 3 sec, then attempt to locate save btn
-  //     // once save button exists, fill out form and save
-  //     setTimeout(() => {
-  //       let saveBtn;
-  //       while (!saveBtn) {
-  //         saveBtn = document.getElementById('saveAddNew');
-  //       }
+    const int4 = setInterval(() => {
+      console.log('seeking save btn');
+      const saveBtn = checkElement('saveAddNew', int4);
+      if (saveBtn) {
+        // add details and save
 
-  //       const fName = 'FIRST';
-  //       const lName = 'LAST';
-  //       const gender = 'Female';
+        const fNameField = document.getElementById('fname');
+        const lNameField = document.getElementById('lname');
+        const genderBtn = document.getElementById(`m_gender${gender}`);
+        fNameField.value = fName;
+        lNameField.value = lName;
+        genderBtn.click();
+        saveBtn.click();
+      }
+    }, 500);
 
-  //       const fNameField = document.getElementById('fname');
-  //       const lNameField = document.getElementById('lname');
-  //       const genderBtn = document.getElementById(`m_gender${gender}`);
+    // wait 2 sec to allow alert info to populate
+    setTimeout(() => {
+      const int5 = setInterval(() => {
+        console.log('seeking success alert');
+        const alert = checkElement('alertSuccess', int5, true);
+        if (alert) {
+          const str = alert[0].children[1].innerHTML;
 
-  //       fNameField.value = fName;
-  //       lNameField.value = lName;
-  //       genderBtn.click();
-  //       saveBtn.click();
+          const regex = /href="([^"]*)"/;
+          const match = str.match(regex);
 
-  //       this.setTimeout(() => {
-  //         let alert;
-  //         while (!alert) {
-  //           alert = document.getElementsByClassName('alertSuccess');
-  //         }
+          if (match && match.length > 1) {
+            const url = match[1];
+            console.log(url);
 
-  //         const str = alert[0].children[1].innerHTML;
-
-  //         const regex = /href="([^"]*)"/;
-  //         const match = str.match(regex);
-
-  //         if (match && match.length > 1) {
-  //           const url = match[1];
-  //           console.log(url);
-
-  //           chrome.runtime.sendMessage({
-  //             action: 'openLink',
-  //             url: url,
-  //           });
-  //         } else {
-  //           console.log('URL not found in the string.');
-  //         }
-  //       }, 3000);
-  //     }, 3000);
-  //   }, 1000);
-  // }, 3000);
+            chrome.runtime.sendMessage({
+              action: 'openLinkAndExecuteScript',
+              url: url,
+              script: 'populateMatchDetails',
+              args: [dnaId],
+            });
+          } else {
+            console.log('URL not found in the string.');
+          }
+        }
+      }, 500);
+    }, 2000);
+  }, 1000);
 }
+
+function populateMatchDetails(dnaId) {
+  console.log(dnaId);
+
+  const int1 = setInterval(() => {
+    console.log('seeking add fact btn');
+    const addFact = checkElement('iconAdd optionsButtonFacts', int1, true);
+    if (addFact) {
+      addFact[0].click();
+    }
+  }, 500);
+
+  const int2 = setInterval(() => {
+    console.log('seeking add fact dropdown');
+    const addFactSel = checkElement('addFactSelect', int2);
+    if (addFactSel) {
+      var optionToSelect = document.getElementById('dna');
+
+      // Create and dispatch a mouse click event on the option
+      var event = new MouseEvent('mousedown', {
+        view: window,
+        bubbles: true,
+        cancelable: true,
+      });
+      optionToSelect.dispatchEvent(event);
+
+      // Manually update the selected property of the option
+      optionToSelect.selected = true;
+
+      // Create and dispatch a change event on the dropdown
+      var changeEvent = new Event('change', {
+        bubbles: true,
+        cancelable: true,
+      });
+      addFactSel.dispatchEvent(changeEvent);
+    }
+  }, 500);
+}
+
+// Listen for message to execute script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'execute_addMatchToTree') {
+    console.log('message received to execute add match to tree');
+    addMatchToTree();
+  } else if (message.action === 'execute_populateMatchDetails') {
+    console.log('message received to execute populate match details');
+    populateMatchDetails(...message.args);
+  }
+});
