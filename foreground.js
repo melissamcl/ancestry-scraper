@@ -47,6 +47,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // message from Add match button in popup
   else if (message.action === 'addMatchToTree') {
     console.log('Add match to tree message received, calling function');
+
+    const matchUrl = window.location.href;
+    console.log(matchUrl);
+
     const treeId = '195521292';
     const url = `https://www.ancestry.com/family-tree/tree/${treeId}`;
 
@@ -54,6 +58,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       action: 'openLinkAndExecuteScript',
       url: url,
       script: 'addMatchToTree',
+      args: [matchUrl],
+      close: true,
     });
+
+    // addMatchToTree(matchUrl);
   }
 });

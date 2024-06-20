@@ -1,7 +1,7 @@
 async function fetchDataWithRetries(url) {
   let retries = 0;
   const maxRetries = 3;
-  let delayRange = [1000, 3000]; // Initial delay range 1-3s
+  let delayRange = [2000, 5000]; // Initial delay range 1-3s
 
   while (retries < maxRetries) {
     let delay =
@@ -59,6 +59,7 @@ async function scrapeMatches(testId) {
     if (bookmarkData) {
       url = `${url}&bookmarkdata=${bookmarkData}`;
     }
+    // console.log(url);
 
     // fetch data (add timestamp for api/caching)
     const unixTime = Math.floor(Date.now() / 1000);
@@ -72,14 +73,16 @@ async function scrapeMatches(testId) {
     // set next bookmark and call recursively, or return result if no more matches
     if (
       data.bookmarkData &&
-      data.bookmarkData.moreMatchesAvailable
-      // && data.bookmarkData.lastMatchesServicePageIdx < 1
+      data.bookmarkData.moreMatchesAvailable &&
+      data.bookmarkData.lastMatchesServicePageIdx < 1
+      // && data.matchGroups[0].matches[0].relationship.sharedCentimorgans < 1000
     ) {
       const bookmarkData = JSON.stringify(data.bookmarkData);
       console.log(data.bookmarkData.lastMatchesServicePageIdx);
 
       return await getMatches(relationguid, matches, bookmarkData);
     } else {
+      console.log('done scraping');
       return matches;
     }
   }
@@ -138,40 +141,47 @@ async function scrapeMatches(testId) {
   try {
     const primaryMatches = await getMatches();
     const primaryMatchesForExport = {
-      matchId: match.testGuid,
+      matchId: testId, //match.testGuid,
       matches: parseData(primaryMatches),
     };
 
     downloadMatches(primaryMatchesForExport, displayName, userId, testId);
 
+    // Function to send the guids to the background script
+    chrome.runtime.sendMessage({
+      action: 'getMutualMatches',
+      guid1: testId,
+      guid2: primaryMatches[0].testGuid,
+    });
+
     // get mutual matches
-    const mutualMatches = [];
-    let i = 0;
-    for (const match of primaryMatches) {
-      // if (i >= 3) {
-      //   break;
-      // }
-      console.log(`${++i} ${match.displayName}`);
-      try {
-        const mutualMatchData = await getMatches(match.testGuid);
-        mutualMatches.push({
-          matchId: match.testGuid,
-          matches: parseData(mutualMatchData),
-        });
-      } catch (error) {
-        console.error('Error while getting mutual matches:', error);
-      }
-    }
+    // const mutualMatches = [];
+    // let i = 0;
+    // for (const match of primaryMatches) {
+    //   if (i >= 3) {
+    //     break;
+    //   }
+    //   console.log(`${++i} ${match.displayName}`);
+    //   try {
+    //     const mutualMatchData = await getMatches(match.testGuid);
+    //     mutualMatches.push({
+    //       matchId: match.testGuid,
+    //       matches: parseData(mutualMatchData),
+    //     });
+    //   } catch (error) {
+    //     console.error('Error while getting mutual matches:', error);
+    //   }
+    // }
 
-    console.log(mutualMatches);
+    // console.log(mutualMatches);
 
-    downloadMatches(
-      mutualMatches,
-      displayName,
-      userId,
-      testId,
-      'mutual_matches'
-    );
+    // downloadMatches(
+    //   mutualMatches,
+    //   displayName,
+    //   userId,
+    //   testId,
+    //   'mutual_matches'
+    // );
   } catch (error) {
     console.error('Error while getting matches:', error);
   }

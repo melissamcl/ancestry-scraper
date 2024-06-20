@@ -13,7 +13,7 @@
     "128": "logo/logo-128.png"
   },
   "options_page": "settings/settings.html",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "debugger", "downloads"],
   "host_permissions": ["*://*/*"],
   "background": {
     "service_worker": "background.js"

@@ -11,9 +11,9 @@ async function fetchData(url) {
 
 async function openMatch(testIds) {
   const els = document.getElementsByClassName('preferredEventDna');
-  console.log();
-  if (els && els[0] && els[0].children && els[0].children[3]) {
-    const matchId = els[0].children[3].innerText;
+  if (els && els[0]) {
+    const matchId =
+      els[0].getElementsByClassName('userCardComment')[0].innerText;
 
     for (const testId of testIds) {
       const matchData = await fetchData(
