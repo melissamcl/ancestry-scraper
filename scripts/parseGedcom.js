@@ -139,7 +139,7 @@ function parseGedcom(gedcomData, filename) {
   }
   // return json;
 
-  downloadJSON(json, filename);
+  downloadFile('json', json, filename);
   // console.log(json);
 }
 

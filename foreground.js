@@ -4,17 +4,21 @@
 // Several foreground scripts can be declared
 // and injected into the same or different pages.
 
-const downloadJSON = (obj, filename) => {
-  console.log('downloading json');
-  const json = JSON.stringify(obj);
+const downloadFile = (ext, obj, filename) => {
+  console.log(`downloading ${ext}`);
+  if ((ext = 'json')) {
+    const json = JSON.stringify(obj);
+    const blob = new Blob([json], { type: 'application/json' });
+  } else if ((ext = 'csv')) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  }
 
-  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
   // Create a download link and click it to trigger the download
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${filename}.json`;
+  a.download = `${filename}.${ext}`;
   document.body.appendChild(a);
   a.click();
 
@@ -22,6 +26,25 @@ const downloadJSON = (obj, filename) => {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 };
+
+// const downloadJSON = (obj, filename) => {
+//   console.log('downloading json');
+//   const json = JSON.stringify(obj);
+
+//   const blob = new Blob([json], { type: 'application/json' });
+//   const url = URL.createObjectURL(blob);
+
+//   // Create a download link and click it to trigger the download
+//   const a = document.createElement('a');
+//   a.href = url;
+//   a.download = `${filename}.json`;
+//   document.body.appendChild(a);
+//   a.click();
+
+//   // Clean up
+//   document.body.removeChild(a);
+//   URL.revokeObjectURL(url);
+// };
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // message from Scrape matches button in popup

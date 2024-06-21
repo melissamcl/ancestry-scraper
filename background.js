@@ -65,20 +65,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   else if (message.action === 'getMutualMatches') {
     const { guid1, guid2 } = message;
 
-    // Attach the debugger to the current tab
-    chrome.debugger.attach({ tabId: sender.tab.id }, '1.0', () => {
-      // Enable network monitoring
-      chrome.debugger.sendCommand({ tabId: sender.tab.id }, 'Network.enable');
-
-      // Navigate to the specific URL
-      chrome.tabs.update(sender.tab.id, {
+    // Create a new tab and navigate to the specific URL
+    chrome.tabs.create(
+      {
         url: `https://www.ancestry.com/discoveryui-matches/compare/${guid1}/with/${guid2}/matchesofmatches`,
-      });
-    });
+      },
+      (newTab) => {
+        // Wait for the tab to load
+        chrome.tabs.onUpdated.addListener(function tabUpdateListener(
+          tabId,
+          changeInfo
+        ) {
+          if (tabId === newTab.id && changeInfo.status === 'complete') {
+            // Attach the debugger to the new tab
+            chrome.debugger.attach({ tabId: newTab.id }, '1.0', () => {
+              // Enable network monitoring
+              chrome.debugger.sendCommand(
+                { tabId: newTab.id },
+                'Network.enable'
+              );
+            });
+
+            // Remove the listener to avoid multiple calls
+            chrome.tabs.onUpdated.removeListener(tabUpdateListener);
+          }
+        });
+      }
+    );
   }
 });
 
-// Event handler for debugger events
 function onEvent(debuggeeId, message, params) {
   if (message === 'Network.responseReceived') {
     const { response } = params;
@@ -110,12 +126,10 @@ function onEvent(debuggeeId, message, params) {
   }
 }
 
-// Helper function to extract the filename from a URL
 function getFileNameFromUrl(url) {
   return url.split('/').pop().split('?')[0];
 }
 
-// Event handler for when the debugger is detached from the tab
 function onDetach(debuggeeId) {
   console.log('Debugger detached from tab', debuggeeId.tabId);
 }

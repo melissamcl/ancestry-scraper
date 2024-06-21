@@ -200,7 +200,7 @@ function downloadMatches(matches, name, userId, testId, description = '') {
     matches: matches,
   };
 
-  downloadJSON(matches, `${name}${description}`);
+  downloadFile('json', matches, `${name}${description}`);
 
   // const json = JSON.stringify(matches);
 
